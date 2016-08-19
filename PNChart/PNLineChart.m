@@ -144,6 +144,7 @@
             PNChartLabel *label = [[PNChartLabel alloc] initWithFrame:CGRectMake(0.0, y, (NSInteger) _chartMarginLeft * 0.9, (NSInteger) _yLabelHeight)];
             [label setTextAlignment:NSTextAlignmentRight];
             label.text = labelText;
+            label.textColor=[UIColor colorWithRed:193/255.0 green:193/255.0 blue:193/255.0 alpha:1];
             [self setCustomStyleForYLabel:label];
             [self addSubview:label];
             [_yChartLabels addObject:label];
@@ -288,8 +289,8 @@
 
             float distance = MIN(distanceToP1, distanceToP2);
 
-            if (distance <= 10.0) {
-                [_delegate userClickedOnLineKeyPoint:touchPoint
+            if (distance <= 40.0) {
+                [_delegate userClickedOnLineKeyPoint:distanceToP1 < distanceToP2 ? p1 : p2
                                            lineIndex:p
                                           pointIndex:(distance == distanceToP2 ? i + 1 : i)];
 
@@ -392,7 +393,7 @@
                 innerGrade = (yValue - _yValueMin) / (_yValueMax - _yValueMin);
             }
 
-            int x = i * _xLabelWidth + _chartMarginLeft + _xLabelWidth / 2.0;
+            int x = i * _xLabelWidth + _chartMarginLeft + _xLabelWidth / 2.0 + 10;
 
             int y = _chartCavanHeight - (innerGrade * _chartCavanHeight) + (_yLabelHeight / 2) + _chartMarginTop - _chartMarginBottom;
 
@@ -733,11 +734,11 @@
         } else {
             CGContextSetStrokeColorWithColor(ctx, [UIColor lightGrayColor].CGColor);
         }
-        for (NSUInteger i = 0; i < _yLabelNum; i++) {
+        for (NSUInteger i = 0; i < _yLabelNum + 1; i++) {
             point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
             CGContextMoveToPoint(ctx, point.x, point.y);
             // add dotted style grid
-            CGFloat dash[] = {6, 5};
+            CGFloat dash[] = {3, 1};
             // dot diameter is 20 points
             CGContextSetLineWidth(ctx, 0.5);
             CGContextSetLineCap(ctx, kCGLineCapRound);
