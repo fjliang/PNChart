@@ -145,7 +145,7 @@
             PNChartLabel *label = [[PNChartLabel alloc] initWithFrame:CGRectMake(0.0, y, (NSInteger) _chartMarginLeft * 0.9, (NSInteger) _yLabelHeight)];
             [label setTextAlignment:NSTextAlignmentRight];
             label.text = labelText;
-            label.backgroundColor=[UIColor redColor];
+            label.backgroundColor=[UIColor clearColor];
             label.textColor = [UIColor colorWithRed:193 / 255.0 green:193 / 255.0 blue:193 / 255.0 alpha:1];
             [self setCustomStyleForYLabel:label];
             [self addSubview:label];
