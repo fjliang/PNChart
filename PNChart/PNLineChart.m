@@ -137,14 +137,16 @@
         CGFloat yStepHeight = _chartCavanHeight / _yLabelNum;
 
         for (int index = 0; index < yLabels.count; index++) {
-            labelText = yLabels[index];
-
-            NSInteger y = (NSInteger) (_chartCavanHeight - index * yStepHeight);
+            labelText = yLabels[yLabels.count - 1 - index];
+//TODO
+            NSInteger y = (NSInteger) (self.chartMarginTop + index * yStepHeight - _yLabelHeight / 2);
+//            NSInteger y = (NSInteger) (_chartCavanHeight - index * yStepHeight);
 
             PNChartLabel *label = [[PNChartLabel alloc] initWithFrame:CGRectMake(0.0, y, (NSInteger) _chartMarginLeft * 0.9, (NSInteger) _yLabelHeight)];
             [label setTextAlignment:NSTextAlignmentRight];
             label.text = labelText;
-            label.textColor=[UIColor colorWithRed:193/255.0 green:193/255.0 blue:193/255.0 alpha:1];
+            label.backgroundColor=[UIColor redColor];
+            label.textColor = [UIColor colorWithRed:193 / 255.0 green:193 / 255.0 blue:193 / 255.0 alpha:1];
             [self setCustomStyleForYLabel:label];
             [self addSubview:label];
             [_yChartLabels addObject:label];
@@ -385,7 +387,8 @@
 
         for (NSUInteger i = 0; i < chartData.itemCount; i++) {
 
-            yValue = chartData.getData(i).y;
+            yValue = chartData.getData(chartData.itemCount-1-i).y;
+//            yValue = chartData.getData(i).y;
 
             if (!(_yValueMax - _yValueMin)) {
                 innerGrade = 0.5;
@@ -394,8 +397,9 @@
             }
 
             int x = i * _xLabelWidth + _chartMarginLeft + _xLabelWidth / 2.0 + 10;
-
-            int y = _chartCavanHeight - (innerGrade * _chartCavanHeight) + (_yLabelHeight / 2) + _chartMarginTop - _chartMarginBottom;
+//TODO
+//            int y = _chartCavanHeight - (innerGrade * _chartCavanHeight) + (_yLabelHeight / 2) + _chartMarginTop - _chartMarginBottom;
+            int y = _chartMarginTop + (innerGrade * _chartCavanHeight)   ;
 
             // Circular point
             if (chartData.inflexionPointStyle == PNLineChartPointStyleCircle) {
@@ -735,7 +739,9 @@
             CGContextSetStrokeColorWithColor(ctx, [UIColor lightGrayColor].CGColor);
         }
         for (NSUInteger i = 0; i < _yLabelNum + 1; i++) {
-            point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
+            //TODO
+//            point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
+            point = CGPointMake(_chartMarginLeft + yAxisOffset, (self.chartMarginTop + i * yStepHeight ));
             CGContextMoveToPoint(ctx, point.x, point.y);
             // add dotted style grid
             CGFloat dash[] = {3, 1};
