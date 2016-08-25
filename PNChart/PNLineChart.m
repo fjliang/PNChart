@@ -12,6 +12,7 @@
 #import "PNLineChartData.h"
 #import "PNLineChartDataItem.h"
 #import <CoreText/CoreText.h>
+#import <FCUtility/FCUtility.h>
 
 @interface PNLineChart ()
 
@@ -24,14 +25,21 @@
 
 @property(nonatomic) CABasicAnimation *pathAnimation; // will be set to nil if _displayAnimation is NO
 
+@property(nonatomic) CABasicAnimation *pathAnimation2; // will be set to nil if _displayAnimation is NO
+
 // display grade
 @property(nonatomic) NSMutableArray *gradeStringPaths;
+
+
+//TODO 折线图单个点
+@property(nonatomic) NSMutableArray *linePoints;
 
 @end
 
 @implementation PNLineChart
 
 @synthesize pathAnimation = _pathAnimation;
+@synthesize pathAnimation2 = _pathAnimation2;
 
 #pragma mark initialization
 
@@ -145,7 +153,7 @@
             PNChartLabel *label = [[PNChartLabel alloc] initWithFrame:CGRectMake(0.0, y, (NSInteger) _chartMarginLeft * 0.9, (NSInteger) _yLabelHeight)];
             [label setTextAlignment:NSTextAlignmentRight];
             label.text = labelText;
-            label.backgroundColor=[UIColor clearColor];
+            label.backgroundColor = [UIColor clearColor];
             label.textColor = [UIColor colorWithRed:193 / 255.0 green:193 / 255.0 blue:193 / 255.0 alpha:1];
             [self setCustomStyleForYLabel:label];
             [self addSubview:label];
@@ -308,6 +316,7 @@
     _chartPath = [[NSMutableArray alloc] init];
     _pointPath = [[NSMutableArray alloc] init];
     _gradeStringPaths = [NSMutableArray array];
+    _linePoints = [NSMutableArray array];
 
     [self calculateChartPath:_chartPath andPointsPath:_pointPath andPathKeyPoints:_pathPoints andPathStartEndPoints:_endPointsOfPath];
     // Draw each line
@@ -341,7 +350,8 @@
 
         // if you want cancel the point animation, conment this code, the point will show immediately
         if (chartData.inflexionPointStyle != PNLineChartPointStyleNone) {
-            [pointLayer addAnimation:self.pathAnimation forKey:@"strokeEndAnimation"];
+//            [pointLayer addAnimation:self.pathAnimation forKey:@"strokeEndAnimation"];
+            [pointLayer addAnimation:self.pathAnimation2 forKey:@"strokeEndAnimation"];
         }
 
         [CATransaction commit];
@@ -354,6 +364,31 @@
 
         UIGraphicsEndImageContext();
     }
+
+//    for (int i = 0; i < _linePoints.count; ++i) {
+//        [self performSelector:@selector(drawPoint:) withObject:@(i) afterDelay:i * 0.4];
+//    }
+}
+
+- (void)drawPoint:(NSNumber *)lineIndex {
+    CAShapeLayer *pointLayer = (CAShapeLayer *) self.chartPointArray[0];
+    UIBezierPath *pointPath = [UIBezierPath bezierPath];
+    for (int i = 0; i < [lineIndex intValue] + 1; ++i) {
+        [pointPath moveToPoint:[_linePoints[i][@"from"] CGPointValue]];
+        [pointPath addArcWithCenter:[_linePoints[i][@"to"] CGPointValue] radius:[_linePoints[i][@"radius"] intValue] startAngle:0 endAngle:2 * M_PI clockwise:YES];
+    }
+
+    pointLayer.path = pointPath.CGPath;
+
+    UIGraphicsBeginImageContext(self.frame.size);
+    [CATransaction begin];
+
+    [pointLayer addAnimation:self.pathAnimation forKey:@"strokeEndAnimation"];
+
+    [CATransaction commit];
+    UIGraphicsEndImageContext();
+
+    NSLog(@"====>%lld", [FCUtility getCurrentMillisecond]);
 }
 
 
@@ -385,9 +420,16 @@
         NSMutableArray<NSDictionary<NSString *, NSValue *> *> *progrssLinePaths = [NSMutableArray new];
         CGFloat inflexionWidth = chartData.inflexionPointWidth;
 
+
+        NSMutableArray *array = [[NSMutableArray alloc] init];
+        for (int j = 0; j < chartData.itemCount; ++j) {
+            UIBezierPath *pp = [UIBezierPath bezierPath];
+            [array addObject:pp];
+        }
+
         for (NSUInteger i = 0; i < chartData.itemCount; i++) {
 
-            yValue = chartData.getData(chartData.itemCount-1-i).y;
+            yValue = chartData.getData(chartData.itemCount - 1 - i).y;
 //            yValue = chartData.getData(i).y;
 
             if (!(_yValueMax - _yValueMin)) {
@@ -399,7 +441,7 @@
             int x = i * _xLabelWidth + _chartMarginLeft + _xLabelWidth / 2.0 + 10;
 //TODO
 //            int y = _chartCavanHeight - (innerGrade * _chartCavanHeight) + (_yLabelHeight / 2) + _chartMarginTop - _chartMarginBottom;
-            int y = _chartMarginTop + (innerGrade * _chartCavanHeight)   ;
+            int y = _chartMarginTop + (innerGrade * _chartCavanHeight);
 
             // Circular point
             if (chartData.inflexionPointStyle == PNLineChartPointStyleCircle) {
@@ -414,6 +456,13 @@
                 if (chartData.showPointLabel) {
                     [gradePathArray addObject:[self createPointLabelFor:chartData.getData(i).rawY pointCenter:circleCenter width:inflexionWidth withChartData:chartData]];
                 }
+
+//TODO
+                [self.linePoints addObject:@{
+                        @"from" : [NSValue valueWithCGPoint:CGPointMake(circleCenter.x + (inflexionWidth / 2), circleCenter.y)],
+                        @"to" : [NSValue valueWithCGPoint:circleCenter],
+                        @"radius" : @(inflexionWidth / 2)}
+                ];
 
                 if (i > 0) {
 
@@ -741,7 +790,7 @@
         for (NSUInteger i = 0; i < _yLabelNum + 1; i++) {
             //TODO
 //            point = CGPointMake(_chartMarginLeft + yAxisOffset, (_chartCavanHeight - i * yStepHeight + _yLabelHeight / 2));
-            point = CGPointMake(_chartMarginLeft + yAxisOffset, (self.chartMarginTop + i * yStepHeight ));
+            point = CGPointMake(_chartMarginLeft + yAxisOffset, (self.chartMarginTop + i * yStepHeight));
             CGContextMoveToPoint(ctx, point.x, point.y);
             // add dotted style grid
             CGFloat dash[] = {3, 1};
@@ -795,6 +844,8 @@
 
     // do not create curved line chart by default
     _showSmoothLines = NO;
+
+    _duration = 2;
 
 }
 
@@ -1072,7 +1123,7 @@
         fadeAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
         fadeAnimation.fromValue = [NSNumber numberWithFloat:0.0];
         fadeAnimation.toValue = [NSNumber numberWithFloat:1.0];
-        fadeAnimation.duration = 2.0;
+        fadeAnimation.duration = _duration;
     }
     return fadeAnimation;
 }
@@ -1080,12 +1131,25 @@
 - (CABasicAnimation *)pathAnimation {
     if (self.displayAnimated && !_pathAnimation) {
         _pathAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-        _pathAnimation.duration = 1.0;
+        _pathAnimation.duration = _duration;
+//        _pathAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
         _pathAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
         _pathAnimation.fromValue = @0.0f;
         _pathAnimation.toValue = @1.0f;
     }
     return _pathAnimation;
+}
+//TODO
+- (CABasicAnimation *)pathAnimation2 {
+    if (self.displayAnimated && !_pathAnimation2) {
+        _pathAnimation2 = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        _pathAnimation2.duration = _duration * 1.2;
+//        _pathAnimation2.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        _pathAnimation2.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        _pathAnimation2.fromValue = @0.0f;
+        _pathAnimation2.toValue = @1.0f;
+    }
+    return _pathAnimation2;
 }
 
 @end

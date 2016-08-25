@@ -56,6 +56,9 @@
 @property (nonatomic) CGFloat chartMarginTop;
 @property (nonatomic) CGFloat chartMarginBottom;
 
+@property(nonatomic) CGFloat duration;
+
+
 /**
  * Controls whether to show the coordinate axis. Default is NO.
  */
