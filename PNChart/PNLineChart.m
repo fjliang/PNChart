@@ -429,8 +429,7 @@
 
         for (NSUInteger i = 0; i < chartData.itemCount; i++) {
 
-            yValue = chartData.getData(chartData.itemCount - 1 - i).y;
-//            yValue = chartData.getData(i).y;
+            yValue = chartData.getData(i).y;
 
             if (!(_yValueMax - _yValueMin)) {
                 innerGrade = 0.5;
@@ -441,7 +440,7 @@
             int x = i * _xLabelWidth + _chartMarginLeft + _xLabelWidth / 2.0 + 10;
 //TODO
 //            int y = _chartCavanHeight - (innerGrade * _chartCavanHeight) + (_yLabelHeight / 2) + _chartMarginTop - _chartMarginBottom;
-            int y = _chartMarginTop + (innerGrade * _chartCavanHeight);
+            int y = _chartMarginTop +_chartCavanHeight- (innerGrade * _chartCavanHeight);
 
             // Circular point
             if (chartData.inflexionPointStyle == PNLineChartPointStyleCircle) {
